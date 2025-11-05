@@ -13,7 +13,7 @@ float map(float x,
           float scrStart, float scrEnd,
           float imgStart, float imgEnd){
   float phase = (x - scrStart)/(scrEnd - scrStart);
-  phase=sin(phase*3.14+11.)*.5+.5;
+  //phase=sin(phase*3.14+11.)*.5+.5;
   
   return imgStart + phase*(imgEnd - imgStart);
 }
