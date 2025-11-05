@@ -5,27 +5,12 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight*0.5, WEBGL);
-  pixelDensity(1);
-  
-  // Проверка протокола (предупреждение, если используется file://)
-  if (window.location.protocol === 'file:') {
-    console.warn('Внимание: Для работы на iOS необходимо использовать HTTP сервер (не file://)');
-    // Показываем предупреждение пользователю
-    setTimeout(function() {
-      const warning = document.createElement('div');
-      warning.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 200; background: rgba(255, 200, 0, 0.95); padding: 15px 25px; border-radius: 10px; border: 2px solid #ff8800; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; text-align: center; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.3);';
-      warning.innerHTML = '⚠️ Для работы на iPhone используйте HTTP сервер:<br><code style="background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px;">python -m http.server 8000</code>';
-      document.body.appendChild(warning);
-      setTimeout(function() {
-        warning.style.opacity = '0';
-        warning.style.transition = 'opacity 0.5s';
-        setTimeout(function() {
-          warning.remove();
-        }, 500);
-      }, 5000);
-    }, 1000);
+  if(window.innerWidth > window.innerHeight){
+    createCanvas(window.innerWidth, window.innerHeight*0.5, WEBGL);
+  } else {
+    createCanvas(window.innerWidth, window.innerHeight, WEBGL);
   }
+  pixelDensity(1);
   
   // Настройка загрузки изображения
   const fileInput = select('#imageInput');

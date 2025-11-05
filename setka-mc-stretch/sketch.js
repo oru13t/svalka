@@ -6,7 +6,11 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight*0.5, WEBGL);
+  if(window.innerWidth > window.innerHeight){
+    createCanvas(window.innerWidth, window.innerHeight*0.5, WEBGL);
+  } else {
+    createCanvas(window.innerWidth, window.innerHeight, WEBGL);
+  }
   pixelDensity(1);
 }
 
