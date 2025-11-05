@@ -11,17 +11,48 @@ function preload(){
 
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight, WEBGL);
-  pixelDensity(displayDensity());
+  // Устанавливаем pixelDensity в 1 для избежания проблем с Retina экранами
+  // Это обеспечит соответствие между gl_FragCoord и переданными размерами
+  pixelDensity(1);
+  
+  // Проверка протокола (предупреждение, если используется file://)
+  if (window.location.protocol === 'file:') {
+    console.warn('Внимание: Для работы на iOS необходимо использовать HTTP сервер (не file://)');
+    // Показываем предупреждение пользователю
+    setTimeout(function() {
+      const warning = document.createElement('div');
+      warning.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 200; background: rgba(255, 200, 0, 0.95); padding: 15px 25px; border-radius: 10px; border: 2px solid #ff8800; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; text-align: center; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.3);';
+      warning.innerHTML = '⚠️ Для работы на iPhone используйте HTTP сервер:<br><code style="background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px;">python -m http.server 8000</code>';
+      document.body.appendChild(warning);
+      setTimeout(function() {
+        warning.style.opacity = '0';
+        warning.style.transition = 'opacity 0.5s';
+        setTimeout(function() {
+          warning.remove();
+        }, 500);
+      }, 5000);
+    }, 1000);
+  }
   
   // Настройка загрузки изображения
   const fileInput = select('#imageInput');
+  const uploadLabel = select('#uploadLabel');
   
   // Обработка изменений через несколько событий для совместимости
   fileInput.changed(handleFileSelect);
   fileInput.elt.addEventListener('change', handleFileSelect, false);
-  
-  // Добавляем обработчик input для iOS Safari
   fileInput.elt.addEventListener('input', handleFileSelect, false);
+  
+  // Для iOS Safari - прямая обработка touchstart на input
+  fileInput.elt.addEventListener('touchstart', function(e) {
+    // Не блокируем событие, позволяем нативному поведению
+    e.stopPropagation();
+  }, { passive: true });
+  
+  // Также добавляем обработчик на label для надежности
+  uploadLabel.elt.addEventListener('click', function(e) {
+    // Позволяем нативному поведению label работать
+  }, { passive: true });
   
   // Обработка изменения размера окна
   window.addEventListener('resize', function() {
@@ -59,10 +90,14 @@ function loadImageFromFile(file) {
       loadImage(e.target.result, function(loadedImage) {
         if (loadedImage) {
           img = loadedImage;
-          // Обновляем label после загрузки
-          const uploadLabel = select('#uploadLabel');
-          uploadLabel.html('<span>✓ Изображение загружено<br>Нажмите для замены</span>');
-          uploadLabel.style('font-size', '16px');
+          // Скрываем кнопку загрузки после успешной загрузки
+          const uploadContainer = select('#uploadContainer');
+          uploadContainer.style('opacity', '0');
+          uploadContainer.style('pointer-events', 'none');
+          uploadContainer.style('transition', 'opacity 0.3s ease');
+          setTimeout(function() {
+            uploadContainer.style('display', 'none');
+          }, 300);
           redraw();
         } else {
           alert('Ошибка загрузки изображения');
@@ -87,11 +122,20 @@ function loadImageFromFile(file) {
 function draw() {
   background(220);
   if (img) {
+    // При pixelDensity(1) canvas имеет такое же разрешение как CSS размеры
+    // gl_FragCoord в shader будет использовать это разрешение
+    // Поэтому передаем width и height напрямую
     sh.setUniform('uResolution', [width, height]);
     sh.setUniform('uImage', img)
     sh.setUniform('uArrX', arrX)
     shader(sh);
-    plane(100, 400);
+    // В WEBGL режиме plane() использует единицы, не пиксели
+    // Учитываем соотношение сторон экрана
+    // Vertex shader умножает позиции на 2, поэтому нужно покрыть весь экран
+    noStroke();
+    const aspect = width / height;
+    // Используем размеры, которые покрывают весь экран с учетом соотношения сторон
+    plane(2 * aspect, 2);
   } else {
     // Показываем подсказку, если изображение не загружено
     resetShader();
