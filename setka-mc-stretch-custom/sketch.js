@@ -5,7 +5,7 @@ function preload(){
 }
 
 function setup() {
-  if(window.innerWidth > window.innerHeight){
+  if(window.innerWidth < window.innerHeight){
     createCanvas(window.innerWidth, window.innerHeight*0.5, WEBGL);
   } else {
     createCanvas(window.innerWidth, window.innerHeight, WEBGL);
