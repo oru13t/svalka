@@ -15,19 +15,13 @@ function setup() {
   
   // Настройка загрузки изображения
   const fileInput = select('#imageInput');
-  const uploadLabel = select('#uploadLabel');
   
   // Обработка изменений через несколько событий для совместимости
   fileInput.changed(handleFileSelect);
   fileInput.elt.addEventListener('change', handleFileSelect, false);
   
-  // Нативный label должен работать, но добавляем обработчик для надежности
-  uploadLabel.elt.addEventListener('touchstart', function(e) {
-    // Для iOS Safari нужно явно вызвать click
-    setTimeout(function() {
-      fileInput.elt.click();
-    }, 100);
-  }, { passive: true });
+  // Добавляем обработчик input для iOS Safari
+  fileInput.elt.addEventListener('input', handleFileSelect, false);
   
   // Обработка изменения размера окна
   window.addEventListener('resize', function() {
